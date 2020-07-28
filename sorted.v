@@ -16,6 +16,19 @@ Proof.
   sauto.
 Qed.
 
+Fixpoint sortedb {A} {dto : DecTotalOrder A} (l : list A) : bool :=
+  match l with
+  | [] => true
+  | [x] => true
+  | x :: (y :: l') as t => leb x y && sortedb t
+  end.
+
+Lemma lem_sortedb_iff_sorted {A} {dto : DecTotalOrder A} :
+  forall l : list A, sortedb l <-> Sorted l.
+Proof.
+  induction l; sauto brefl: on inv: Sorted.
+Qed.
+
 Definition LeLst {A} {dto : DecTotalOrder A} (x : A) :=
   List.Forall (leb x).
 

@@ -24,7 +24,7 @@ Lemma lem_insert_sorted_hlp {A} {dto : DecTotalOrder A} :
   forall (l : list A) x y,
     leb x y -> Sorted (x :: l) -> Sorted (x :: insert l y).
 Proof.
-  induction l; sauto.
+  induction l; sauto q: on inv: Sorted ctrs: Sorted.
 Qed.
 
 Lemma lem_insert_sorted {A} {dto : DecTotalOrder A} (l : list A) (x : A) :
@@ -49,4 +49,26 @@ Lemma lem_isort_perm {A} {dto : DecTotalOrder A} :
   forall l : list A, Permutation (isort l) l.
 Proof.
   induction l; sauto use: lem_insert_perm.
+Qed.
+
+(* Boolean version *)
+
+Lemma lem_insert_sortedb_hlp {A} {dto : DecTotalOrder A} :
+  forall (l : list A) x y,
+    leb x y -> sortedb (x :: l) -> sortedb (x :: insert l y).
+Proof.
+  induction l; hauto brefl: on.
+Qed.
+
+Lemma lem_insert_sortedb {A} {dto : DecTotalOrder A} :
+  forall (l : list A) x,
+    sortedb l -> sortedb (insert l x).
+Proof.
+  destruct l; hauto brefl: on use: lem_insert_sortedb_hlp.
+Qed.
+
+Lemma lem_isort_sortedb {A} {dto : DecTotalOrder A} :
+  forall l : list A, sortedb (isort l).
+Proof.
+  induction l; sauto use: lem_insert_sortedb.
 Qed.
