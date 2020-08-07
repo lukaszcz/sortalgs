@@ -7,14 +7,22 @@ Open Scope list_scope.
 
 Class DecTotalOrder (A : Type) := {
   leb : A -> A -> bool;
-  leb_total_dec : forall x y, {leb x y}+{leb y x};
+  leb_total : forall x y, leb x y \/ leb y x;
   leb_antisym : forall x y, leb x y -> leb y x -> x = y;
   leb_trans : forall x y z, leb x y -> leb y z -> leb x z }.
 
 Arguments leb {A _}.
-Arguments leb_total_dec {A _}.
+Arguments leb_total {A _}.
 Arguments leb_antisym {A _}.
 Arguments leb_trans {A _}.
+
+Definition leb_total_dec {A} {dto : DecTotalOrder A}
+  : forall x y, {leb x y}+{leb y x}.
+  intros x y.
+  sdestruct (leb x y).
+  - left; constructor.
+  - right; destruct (leb_total x y); auto.
+Defined.
 
 Definition eq_dec {A} {dto : DecTotalOrder A} : forall x y : A, {x = y}+{x <> y}.
   intros x y.
