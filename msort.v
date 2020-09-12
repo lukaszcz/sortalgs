@@ -1,5 +1,5 @@
 (******************************************************************)
-(* Merge sort *)
+(* Mergesort (subset types) *)
 
 From sortalgs Require Import sorted.
 

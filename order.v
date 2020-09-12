@@ -35,6 +35,30 @@ Definition eq_dec {A} {dto : DecTotalOrder A} : forall x y : A, {x = y}+{x <> y}
     + destruct (leb_total_dec x y); auto.
 Defined.
 
+Definition eqb {A} {dto : DecTotalOrder A} (x y : A) : bool :=
+  if eq_dec x y then
+    true
+  else
+    false.
+
+Definition ltb {A} {dto : DecTotalOrder A} (x y : A) : bool :=
+  leb x y && negb (eqb x y).
+
+Definition leb_ltb_dec {A} {dto : DecTotalOrder A} (x y : A) : {leb x y}+{ltb y x}.
+  destruct (leb_total_dec x y).
+  - left; sauto.
+  - unfold ltb, negb, eqb.
+    destruct (eq_dec y x).
+    + left; sauto.
+    + right; sauto brefl: on.
+Defined.
+
+Lemma lem_ltb_leb_incl {A} {dto : DecTotalOrder A} :
+  forall x y : A, ltb x y -> leb x y.
+Proof.
+  sauto brefl: on unfold: ltb.
+Qed.
+
 Function lexb {A} {dto : DecTotalOrder A} (l1 l2 : list A) : bool :=
   match l1 with
   | [] => true
