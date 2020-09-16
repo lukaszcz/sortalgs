@@ -21,6 +21,12 @@ Proof.
   intro x; destruct (leb_total x x); auto.
 Qed.
 
+Lemma lem_neg_leb {A} {dto : DecTotalOrder A} :
+  forall x y, ~ (leb x y) -> leb y x.
+Proof.
+  qauto use: @leb_total.
+Qed.
+
 Definition leb_total_dec {A} {dto : DecTotalOrder A}
   : forall x y, {leb x y}+{leb y x}.
   intros x y.

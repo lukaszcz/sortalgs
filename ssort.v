@@ -20,47 +20,28 @@ Fixpoint select {A} {dto: DecTotalOrder A} (x : A) (l : list A) : A * list A :=
     (x, [])
   end.
 
-Ltac solve_select l tac :=
-  let simp :=
-      try
-        match goal with
-        | [ H: ~ is_true (@leb ?A ?dto ?x ?a) |- _ ] =>
-          destruct (@leb_total A dto x a)
-        end
-  in
-  let a := fresh "a" in
-  let x := fresh "x" in
-  let y := fresh "y" in
-  let l' := fresh "l" in
-  let IHl := fresh "H" in
-  induction l as [| a l IHl];
-  [ sauto |
-    intros l' x y; simpl; sdestruct (leb x a);
-    [ sdestruct (select x l); tac |
-      sdestruct (select a l); simp; tac ] ].
-
 Lemma lem_select_length {A} {dto : DecTotalOrder A} :
   forall (l l' : list A) x y, select x l = (y, l') -> length l' = length l.
 Proof.
-  solve_select l ltac:(sauto lq: on).
+  induction l; hauto.
 Qed.
 
 Lemma lem_select_perm {A} {dto : DecTotalOrder A} :
   forall (l l' : list A) x y, select x l = (y, l') -> Permutation (x :: l) (y :: l').
 Proof.
-  solve_select l ltac:(sauto lq: on inv: Permutation ctrs: Permutation).
+  induction l; hauto q: on inv: Permutation ctrs: Permutation.
 Qed.
 
 Lemma lem_select_leb {A} {dto : DecTotalOrder A} :
   forall (l l' : list A) x y, select x l = (y, l') -> leb y x.
 Proof.
-  solve_select l sauto.
+  induction l; [ sauto | sauto use: lem_neg_leb ].
 Qed.
 
 Lemma lem_select_lelst {A} {dto : DecTotalOrder A} :
   forall (l l' : list A) x y, select x l = (y, l') -> LeLst y l'.
 Proof.
-  solve_select l ltac:(sauto use: lem_select_leb).
+  induction l; sauto use: lem_select_leb, lem_neg_leb.
 Qed.
 
 Function ssort {A} {dto: DecTotalOrder A} (l : list A) {measure length l}
@@ -76,7 +57,7 @@ Proof.
   (* Without explicit "intros" lem_select_length would be added to
      the context first, with introductions done afterwards. This
      confuses sauto in this particular case. *)
-Qed.
+Defined.
 
 Arguments ssort {_ _}.
 

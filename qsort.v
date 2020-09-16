@@ -1,12 +1,12 @@
 (********************************************************************************)
-(* Quicksort (subset types) *)
+(* Quicksort *)
 
 From sortalgs Require Import sorted.
 
 Open Scope list_scope.
 Import List.ListNotations.
 
-Require Import Program.
+Require Import Recdef.
 
 Lemma lem_partition {A} {dto : DecTotalOrder A} :
   forall (x : A) l1 l2, Sorted l1 -> Sorted l2 -> GeLst x l1 -> LeLst x l2 ->
@@ -17,25 +17,47 @@ Proof.
   - inversion 1; inversion 2; hauto use: lem_sorted_tail ctrs: Sorted.
 Qed.
 
-Program Fixpoint partition {A} {dto : DecTotalOrder A} (x : A) (l : list A)
-  {measure (length l)} :
-  { (l1, l2) : list A * list A |
-    GeLst x l1 /\ LeLst x l2 /\ Permutation l (l1 ++ l2) } :=
+Function partition {A} {dto : DecTotalOrder A} (x : A) (l : list A)
+  {measure length l} : list A * list A :=
   match l with
   | [] => ([], [])
   | h :: t =>
     match partition x t with
     | (t1, t2) =>
-      if leb_total_dec h x then
+      if leb h x then
         (h :: t1, t2)
       else
         (t1, h :: t2)
     end
   end.
-Solve Obligations with sauto use: Permutation_middle.
+Proof.
+  sauto.
+Defined.
 
-Program Fixpoint qsort {A} {dto : DecTotalOrder A} (l : list A) {measure (length l)}
-  : {l' | Sorted l' /\ Permutation l l'} :=
+Arguments partition {_ _}.
+
+Lemma lem_partition_perm {A} {dto : DecTotalOrder A} :
+  forall l l1 l2 x, partition x l = (l1, l2) -> Permutation l (l1 ++ l2).
+Proof.
+  induction l.
+  - sauto.
+  - intros *.
+    rewrite partition_equation.
+    hauto use: Permutation_middle, @leb_total.
+Qed.
+
+Lemma lem_partition_parted {A} {dto : DecTotalOrder A} :
+  forall l l1 l2 x, partition x l = (l1, l2) -> GeLst x l1 /\ LeLst x l2.
+Proof.
+  induction l.
+  - sauto.
+  - intros *.
+    rewrite partition_equation.
+    hauto use: lem_neg_leb.
+Qed.
+
+Function qsort {A} {dto : DecTotalOrder A} (l : list A) {measure length l}
+  : list A :=
   match l with
   | [] => []
   | h :: t =>
@@ -43,17 +65,26 @@ Program Fixpoint qsort {A} {dto : DecTotalOrder A} (l : list A) {measure (length
     | (t1, t2) => qsort t1 ++ [h] ++ qsort t2
     end
   end.
-Next Obligation.
-  sauto.
+Proof.
+  all: intros; hauto use: lem_partition_perm, Permutation_length db: list.
+Defined.
+
+Arguments qsort {_ _}.
+
+Lemma lem_qsort_perm  {A} {dto : DecTotalOrder A} :
+  forall l, Permutation l (qsort l).
+Proof.
+  intro l.
+  functional induction (qsort l).
+  - sauto.
+  - hauto lq: on use: lem_partition_perm, perm_trans, perm_skip, Permutation_middle, Permutation_app.
 Qed.
-Next Obligation.
-  hauto use: Permutation_length db: list.
-Qed.
-Next Obligation.
-  hauto use: Permutation_length db: list.
-Qed.
-Next Obligation.
-  destruct_sigma; simp_hyps; split.
-  - eauto using lem_gelst_perm, lem_lelst_perm, lem_partition.
-  - eauto using perm_trans, perm_skip, Permutation_middle, Permutation_app.
+
+Lemma lem_qsort_sorted  {A} {dto : DecTotalOrder A} :
+  forall l, Sorted (qsort l).
+Proof.
+  intro l.
+  functional induction (qsort l).
+  - sauto.
+  - hauto lq: on use: lem_partition_parted, lem_qsort_perm, lem_gelst_perm, lem_lelst_perm, lem_partition.
 Qed.

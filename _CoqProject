@@ -4,5 +4,6 @@ sorted.v
 isort.v
 msort.v
 qsort.v
+qsort_sub.v
 ssort.v
 ssort_sub.v
