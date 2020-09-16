@@ -19,7 +19,7 @@ Ltac solve_select :=
     | [H : Permutation (?x :: ?t) (?x1 :: ?x2) |- _ ] =>
       assert (leb x1 x);
         [ let H0 := fresh "H" in
-          assert (H0: LeLst x1 (x1 :: x2)) by sauto use: (leb_total x1 x1);
+          assert (H0: LeLst x1 (x1 :: x2)) by sauto use: (leb_refl x1);
           assert (LeLst x1 (x :: t));
           [ clear -H0 H; hauto db: lelst | sauto ] | sauto ]
     end ].

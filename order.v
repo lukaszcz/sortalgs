@@ -16,6 +16,11 @@ Arguments leb_total {A _}.
 Arguments leb_antisym {A _}.
 Arguments leb_trans {A _}.
 
+Lemma leb_refl {A} {dto : DecTotalOrder A} : forall x, leb x x.
+Proof.
+  intro x; destruct (leb_total x x); auto.
+Qed.
+
 Definition leb_total_dec {A} {dto : DecTotalOrder A}
   : forall x y, {leb x y}+{leb y x}.
   intros x y.
