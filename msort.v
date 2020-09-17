@@ -1,13 +1,94 @@
 (******************************************************************)
-(* Mergesort (subset types) *)
+(* Mergesort *)
 
 From sortalgs Require Import sorted.
 
 Open Scope list_scope.
 Import List.ListNotations.
 
-Require Import Lia.
-Require Import Program.
+Require Import Recdef.
+
+Definition length_sum {A} (p : list A * list A) :=
+  match p with
+  | (l1, l2) => List.length l1 + List.length l2
+  end.
+
+Function merge {A} {dto : DecTotalOrder A}
+  (p : list A * list A) {measure length_sum p} : list A :=
+  match fst p with
+  | [] => snd p
+  | h1 :: t1 =>
+    match snd p with
+    | [] => h1 :: t1
+    | h2 :: t2 =>
+      if leb h1 h2 then
+        h1 :: merge (t1, snd p)
+      else
+        h2 :: merge (fst p, t2)
+    end
+  end.
+Proof.
+  all: sauto.
+Defined.
+
+Arguments merge {_ _}.
+
+Function split {A} (l : list A) : list A * list A :=
+  match l with
+  | [] => ([], [])
+  | [x] => ([x], [])
+  | x :: y :: t =>
+    match split t with
+    | (l1, l2) => (x :: l1, y :: l2)
+    end
+  end.
+
+Lemma lem_split_sum {A} : forall l : list A,
+    forall l1 l2, split l = (l1, l2) ->
+                  length l = length l1 + length l2.
+Proof.
+  intro l.
+  functional induction (split l); sauto.
+Qed.
+
+Lemma lem_split {A} : forall l : list A,
+    2 <= List.length l ->
+    forall l1 l2, split l = (l1, l2) ->
+    List.length l1 < List.length l /\
+    List.length l2 < List.length l.
+Proof.
+  intros [|x [|y l]]; hauto use: @lem_split_sum.
+Qed.
+
+Function msort {A} {dto : DecTotalOrder A} (l : list A)
+  {measure List.length l} : list A :=
+  match l with
+  | [] => []
+  | [x] => [x]
+  | _ =>
+    match split l with
+    | (l1, l2) => merge (msort l1, msort l2)
+    end
+  end.
+Proof.
+  all:
+    intros; assert (Hlen: 2 <= length l) by sauto;
+    hauto use: (lem_split l Hlen).
+Defined.
+
+Arguments msort {_ _}.
+
+Lemma lem_merge_perm {A} {dto : DecTotalOrder A} :
+  forall l1 l2, Permutation (merge (l1, l2)) (l1 ++ l2).
+Proof.
+  enough (forall p, Permutation (merge p) (fst p ++ snd p)) by sauto.
+  intro p.
+  functional induction (merge p) as [ | | | ? ? ? ? ? ? E].
+  - sauto.
+  - sauto db: list.
+  - sauto db: list.
+  - rewrite E; hauto use: Permutation_middle.
+Qed.
 
 Lemma lem_sorted_concat_1 {A} {dto : DecTotalOrder A} :
   forall (l l1 l2 : list A) x y,
@@ -29,115 +110,65 @@ Proof.
   sauto db: lelst inv: -.
 Qed.
 
-Program Fixpoint merge {A} {dto : DecTotalOrder A}
-  (l1 l2 : {l | Sorted l}) {measure (List.length l1 + List.length l2)} :
-  {l | Sorted l /\ Permutation l (l1 ++ l2)} :=
-  match l1 with
-  | [] => l2
-  | h1 :: t1 =>
-    match l2 with
-    | [] => l1
-    | h2 :: t2 =>
-      if leb_total_dec h1 h2 then
-        h1 :: merge t1 l2
-      else
-        h2 :: merge l1 t2
-    end
-  end.
-Next Obligation.
-  sauto db: list.
-Qed.
-Next Obligation.
-  eauto using lem_sorted_tail.
-Qed.
-Next Obligation.
-  sauto use: lem_sorted_concat_1.
-Qed.
-Next Obligation.
-  eauto using lem_sorted_tail.
-Qed.
-Next Obligation.
-  simpl; lia.
-Qed.
-Next Obligation.
-  split.
-  - sauto use: lem_sorted_concat_2.
-  - simpl_sigma.
-    rewrite List.app_comm_cons.
-    apply Permutation_cons_app.
-    intuition.
-Qed.
-
-Program Fixpoint split {A} (l : list A) {measure (length l)} :
-  { (l1, l2) : list A * list A |
-    length l1 + length l2 = length l /\
-    length l1 <= length l2 + 1 /\ length l2 <= length l1 + 1 /\
-    Permutation l (l1 ++ l2) } :=
-  match l with
-  | [] => ([], [])
-  | [x] => ([x], [])
-  | x :: y :: t =>
-    match split t with
-    | (l1, l2) => (x :: l1, y :: l2)
-    end
-  end.
-Solve Obligations with sauto use: Permutation_cons_app.
-
-Lemma lem_split {A} : forall l : list A,
-    2 <= List.length l ->
-    forall l1 l2, (l1, l2) = ` (split l) ->
-    List.length l1 < List.length l /\
-    List.length l2 < List.length l.
+Lemma lem_merge_sorted {A} {dto : DecTotalOrder A} :
+  forall l1 l2, Sorted l1 -> Sorted l2 -> Sorted (merge (l1, l2)).
 Proof.
-  sauto.
-Qed.
-
-Ltac use_lem_split :=
-  match goal with
-  | [ H1: [] <> ?l, H2: forall x, [x] <> ?l |- _ ] =>
-    assert (2 <= length l) by
-        (clear - H1 H2; destruct l; hauto depth: 1 inv: list)
-  end;
-  sauto use: @lem_split.
-
-Obligation Tactic := idtac.
-
-Program Fixpoint mergesort {A} {dto : DecTotalOrder A} (l : list A)
-  {measure (List.length l)} : {l' | Sorted l' /\ Permutation l' l} :=
-  match l with
-  | [] => []
-  | [x] => [x]
-  | _ =>
-    match split l with
-    | (l1, l2) => merge (mergesort l1) (mergesort l2)
-    end
-  end.
-Next Obligation.
-  sauto.
-Qed.
-Next Obligation.
-  sauto.
-Qed.
-Next Obligation.
-  program_simpl; use_lem_split.
-Qed.
-Next Obligation.
-  sauto.
-Qed.
-Next Obligation.
-  program_simpl; use_lem_split.
-Qed.
-Next Obligation.
-  sauto.
-Qed.
-Next Obligation.
-  split.
+  enough (forall p, Sorted (fst p) -> Sorted (snd p) -> Sorted (merge p)) by sauto.
+  intro p.
+  functional induction (merge p) as [ | | ? h1 t1 E1 h2 t2 E2 |
+                                      ? h1 t1 E1 h2 t2 E2 ].
   - sauto.
-  - qauto use: Permutation_app, Permutation_sym, perm_trans.
+  - sauto.
+  - simpl in *.
+    intros.
+    rewrite E1 in *.
+    rewrite E2 in *.
+    assert (Sorted (merge (t1, h2 :: t2))).
+    { qauto use: lem_sorted_tail. }
+    hauto use: lem_sorted_concat_1, lem_merge_perm.
+  - simpl in *.
+    intros.
+    rewrite E1 in *.
+    rewrite E2 in *.
+    assert (Sorted (merge (h1 :: t1, t2))).
+    { qauto use: lem_sorted_tail. }
+    eapply lem_sorted_concat_2; hauto use: leb_total, lem_merge_perm.
 Qed.
-Next Obligation.
-  sauto.
+
+Lemma lem_split_perm {A} :
+  forall l l1 l2 : list A, split l = (l1, l2) -> Permutation l (l1 ++ l2).
+Proof.
+  intro l.
+  functional induction (split l).
+  - hauto.
+  - hauto.
+  - hauto use: perm_skip, Permutation_cons_app.
 Qed.
-Next Obligation.
-  program_simpl.
-Defined.
+
+Lemma lem_msort_perm {A} {dto : DecTotalOrder A} :
+  forall l, Permutation (msort l) l.
+Proof.
+  intro l.
+  functional induction (msort l) as [ | | ? ? ? ? l1 l2 ].
+  - sauto.
+  - sauto.
+  - assert (HH1: Permutation (l1 ++ l2) l).
+    { hauto use: (lem_split_perm l l1 l2), Permutation_sym. }
+    assert (Permutation (merge (msort l1, msort l2)) (msort l1 ++ msort l2)).
+    { hauto use: (lem_merge_perm (msort l1) (msort l2)). }
+    assert (Permutation (msort l1 ++ msort l2) (l1 ++ l2)).
+    { hauto use: Permutation_app. }
+    assert (HH2: Permutation (merge (msort l1, msort l2)) (l1 ++ l2)).
+    { eapply perm_trans; eassumption. }
+    eapply perm_trans; eassumption.
+Qed.
+
+Lemma lem_msort_sorted {A} {dto : DecTotalOrder A} :
+  forall l, Sorted (msort l).
+Proof.
+  intro l.
+  functional induction (msort l).
+  - hauto.
+  - hauto.
+  - hauto use: lem_merge_sorted.
+Qed.

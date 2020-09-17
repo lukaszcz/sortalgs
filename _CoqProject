@@ -3,6 +3,7 @@ order.v
 sorted.v
 isort.v
 msort.v
+msort_sub.v
 qsort.v
 qsort_sub.v
 ssort.v
