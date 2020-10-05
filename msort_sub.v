@@ -70,7 +70,6 @@ Qed.
 
 Program Fixpoint split {A} (l : list A) {measure (length l)} :
   { (l1, l2) : list A * list A |
-    length l1 + length l2 = length l /\
     length l1 <= length l2 + 1 /\ length l2 <= length l1 + 1 /\
     Permutation l (l1 ++ l2) } :=
   match l with
@@ -89,6 +88,9 @@ Lemma lem_split {A} : forall l : list A,
     List.length l1 < List.length l /\
     List.length l2 < List.length l.
 Proof.
+  intros l ? l1 l2 ?.
+  assert (length l = length l1 + length l2).
+  { sauto use: Permutation_length, app_length. }
   sauto.
 Qed.
 
@@ -98,7 +100,7 @@ Ltac use_lem_split :=
     assert (2 <= length l) by
         (clear - H1 H2; destruct l; hauto depth: 1 inv: list)
   end;
-  sauto use: @lem_split.
+  use @lem_split; eauto.
 
 Obligation Tactic := idtac.
 
