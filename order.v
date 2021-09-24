@@ -11,31 +11,25 @@ Class DecTotalOrder (A : Type) := {
   leb_antisym : forall x y, leb x y -> leb y x -> x = y;
   leb_trans : forall x y z, leb x y -> leb y z -> leb x z }.
 
-Arguments leb {A _}.
-Arguments leb_total {A _}.
-Arguments leb_antisym {A _}.
-Arguments leb_trans {A _}.
-
-Lemma leb_refl {A} {dto : DecTotalOrder A} : forall x, leb x x.
+Lemma leb_refl `{DecTotalOrder} : forall x, leb x x.
 Proof.
   intro x; destruct (leb_total x x); auto.
 Qed.
 
-Lemma lem_neg_leb {A} {dto : DecTotalOrder A} :
+Lemma lem_neg_leb `{DecTotalOrder} :
   forall x y, ~ (leb x y) -> leb y x.
 Proof.
-  qauto use: @leb_total.
+  qauto use: leb_total.
 Qed.
 
-Definition leb_total_dec {A} {dto : DecTotalOrder A}
-  : forall x y, {leb x y}+{leb y x}.
+Definition leb_total_dec `{DecTotalOrder} : forall x y, {leb x y}+{leb y x}.
   intros x y.
   sdestruct (leb x y).
   - left; constructor.
   - right; destruct (leb_total x y); auto.
 Defined.
 
-Definition eq_dec {A} {dto : DecTotalOrder A} : forall x y : A, {x = y}+{x <> y}.
+Definition eq_dec {A} `{DecTotalOrder A} : forall x y : A, {x = y}+{x <> y}.
   intros x y.
   sdestruct (leb x y).
   - sdestruct (leb y x).
@@ -46,16 +40,16 @@ Definition eq_dec {A} {dto : DecTotalOrder A} : forall x y : A, {x = y}+{x <> y}
     + destruct (leb_total_dec x y); auto.
 Defined.
 
-Definition eqb {A} {dto : DecTotalOrder A} (x y : A) : bool :=
+Definition eqb `{DecTotalOrder} x y : bool :=
   if eq_dec x y then
     true
   else
     false.
 
-Definition ltb {A} {dto : DecTotalOrder A} (x y : A) : bool :=
+Definition ltb `{DecTotalOrder} x y : bool :=
   leb x y && negb (eqb x y).
 
-Definition leb_ltb_dec {A} {dto : DecTotalOrder A} (x y : A) : {leb x y}+{ltb y x}.
+Definition leb_ltb_dec `{DecTotalOrder} x y : {leb x y}+{ltb y x}.
   destruct (leb_total_dec x y).
   - left; sauto.
   - unfold ltb, negb, eqb.
@@ -64,13 +58,13 @@ Definition leb_ltb_dec {A} {dto : DecTotalOrder A} (x y : A) : {leb x y}+{ltb y 
     + right; sauto brefl: on.
 Defined.
 
-Lemma lem_ltb_leb_incl {A} {dto : DecTotalOrder A} :
+Lemma lem_ltb_leb_incl `{DecTotalOrder} :
   forall x y : A, ltb x y -> leb x y.
 Proof.
   sauto brefl: on unfold: ltb.
 Qed.
 
-Function lexb {A} {dto : DecTotalOrder A} (l1 l2 : list A) : bool :=
+Function lexb `{DecTotalOrder} l1 l2 :=
   match l1 with
   | [] => true
   | x :: l1' =>
@@ -84,7 +78,7 @@ Function lexb {A} {dto : DecTotalOrder A} (l1 l2 : list A) : bool :=
     end
   end.
 
-Instance dto_list {A} {dto_a : DecTotalOrder A} : DecTotalOrder (list A).
+Instance dto_list {A} `{DecTotalOrder A} : DecTotalOrder (list A).
 Proof.
   apply Build_DecTotalOrder with (leb := lexb).
   - induction x; sauto.

@@ -8,8 +8,8 @@ Import List.ListNotations.
 
 Require Import Recdef.
 
-Lemma lem_partition {A} {dto : DecTotalOrder A} :
-  forall (x : A) l1 l2, Sorted l1 -> Sorted l2 -> GeLst x l1 -> LeLst x l2 ->
+Lemma lem_partition `{DecTotalOrder} :
+  forall x l1 l2, Sorted l1 -> Sorted l2 -> GeLst x l1 -> LeLst x l2 ->
                         Sorted (l1 ++ x :: l2).
 Proof.
   induction l1.
@@ -36,7 +36,7 @@ Defined.
 
 Arguments partition {_ _}.
 
-Lemma lem_partition_perm {A} {dto : DecTotalOrder A} :
+Lemma lem_partition_perm `{DecTotalOrder} :
   forall l l1 l2 x, partition x l = (l1, l2) -> Permutation l (l1 ++ l2).
 Proof.
   induction l.
@@ -46,7 +46,7 @@ Proof.
     hauto use: Permutation_middle, @leb_total.
 Qed.
 
-Lemma lem_partition_parted {A} {dto : DecTotalOrder A} :
+Lemma lem_partition_parted `{DecTotalOrder} :
   forall l l1 l2 x, partition x l = (l1, l2) -> GeLst x l1 /\ LeLst x l2.
 Proof.
   induction l.
@@ -71,7 +71,7 @@ Defined.
 
 Arguments qsort {_ _}.
 
-Lemma lem_qsort_perm  {A} {dto : DecTotalOrder A} :
+Lemma lem_qsort_perm `{DecTotalOrder} :
   forall l, Permutation l (qsort l).
 Proof.
   intro l.
@@ -80,7 +80,7 @@ Proof.
   - hauto lq: on use: lem_partition_perm, perm_trans, perm_skip, Permutation_middle, Permutation_app.
 Qed.
 
-Lemma lem_qsort_sorted  {A} {dto : DecTotalOrder A} :
+Lemma lem_qsort_sorted `{DecTotalOrder} :
   forall l, Sorted (qsort l).
 Proof.
   intro l.

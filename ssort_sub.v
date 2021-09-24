@@ -24,7 +24,7 @@ Ltac solve_select :=
           [ clear -H0 H; hauto db: lelst | sauto ] | sauto ]
     end ].
 
-Program Fixpoint select {A} {dto: DecTotalOrder A} (x : A) (l : list A)
+Program Fixpoint select {A} `{DecTotalOrder A} (x : A) (l : list A)
         {measure (length l)}
   : { (y, l') : A * list A |
       Permutation (x :: l) (y :: l') /\ LeLst y l' /\
@@ -52,7 +52,7 @@ Next Obligation.
   sauto.
 Qed.
 
-Program Fixpoint ssort {A} {dto: DecTotalOrder A} (l : list A) {measure (length l)}
+Program Fixpoint ssort {A} `{DecTotalOrder A} (l : list A) {measure (length l)}
   : { l' : list A | Sorted l' /\ Permutation l' l } :=
   match l with
   | h :: t =>

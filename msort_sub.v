@@ -9,8 +9,8 @@ Import List.ListNotations.
 Require Import Lia.
 Require Import Program.
 
-Lemma lem_sorted_concat_1 {A} {dto : DecTotalOrder A} :
-  forall (l l1 l2 : list A) x y,
+Lemma lem_sorted_concat_1 `{DecTotalOrder} :
+  forall l l1 l2 x y,
     Permutation l (l1 ++ y :: l2) -> Sorted (x :: l1) -> leb x y ->
     Sorted (y :: l2) -> Sorted l -> Sorted (x :: l).
 Proof.
@@ -19,8 +19,8 @@ Proof.
   sauto db: lelst inv: -.
 Qed.
 
-Lemma lem_sorted_concat_2 {A} {dto : DecTotalOrder A} :
-  forall (l l1 l2 : list A) x y,
+Lemma lem_sorted_concat_2 `{DecTotalOrder} :
+  forall l l1 l2 x y,
     Permutation l (x :: l1 ++ l2) -> Sorted (x :: l1) -> leb y x ->
     Sorted (y :: l2) -> Sorted l -> Sorted (y :: l).
 Proof.
@@ -29,8 +29,8 @@ Proof.
   sauto db: lelst inv: -.
 Qed.
 
-Program Fixpoint merge {A} {dto : DecTotalOrder A}
-  (l1 l2 : {l | Sorted l}) {measure (List.length l1 + List.length l2)} :
+Program Fixpoint merge `{DecTotalOrder}
+  (l1 l2 : {l | Sorted l}) {measure (length l1 + length l2)} :
   {l | Sorted l /\ Permutation l (l1 ++ l2)} :=
   match l1 with
   | [] => l2
@@ -104,8 +104,8 @@ Ltac use_lem_split :=
 
 Obligation Tactic := idtac.
 
-Program Fixpoint mergesort {A} {dto : DecTotalOrder A} (l : list A)
-  {measure (List.length l)} : {l' | Sorted l' /\ Permutation l' l} :=
+Program Fixpoint mergesort {A} `{DecTotalOrder A} (l : list A)
+  {measure (length l)} : {l' | Sorted l' /\ Permutation l' l} :=
   match l with
   | [] => []
   | [x] => [x]

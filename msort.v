@@ -61,7 +61,7 @@ Proof.
 Qed.
 
 Function msort {A} {dto : DecTotalOrder A} (l : list A)
-  {measure List.length l} : list A :=
+  {measure length l} : list A :=
   match l with
   | [] => []
   | [x] => [x]
@@ -78,7 +78,7 @@ Defined.
 
 Arguments msort {_ _}.
 
-Lemma lem_merge_perm {A} {dto : DecTotalOrder A} :
+Lemma lem_merge_perm `{DecTotalOrder} :
   forall l1 l2, Permutation (merge (l1, l2)) (l1 ++ l2).
 Proof.
   enough (forall p, Permutation (merge p) (fst p ++ snd p)) by sauto.
@@ -90,8 +90,8 @@ Proof.
   - rewrite E; hauto use: Permutation_middle.
 Qed.
 
-Lemma lem_sorted_concat_1 {A} {dto : DecTotalOrder A} :
-  forall (l l1 l2 : list A) x y,
+Lemma lem_sorted_concat_1 `{DecTotalOrder} :
+  forall l l1 l2 x y,
     Permutation l (l1 ++ y :: l2) -> Sorted (x :: l1) -> leb x y ->
     Sorted (y :: l2) -> Sorted l -> Sorted (x :: l).
 Proof.
@@ -100,8 +100,8 @@ Proof.
   sauto db: lelst inv: -.
 Qed.
 
-Lemma lem_sorted_concat_2 {A} {dto : DecTotalOrder A} :
-  forall (l l1 l2 : list A) x y,
+Lemma lem_sorted_concat_2 `{DecTotalOrder} :
+  forall l l1 l2 x y,
     Permutation l (x :: l1 ++ l2) -> Sorted (x :: l1) -> leb y x ->
     Sorted (y :: l2) -> Sorted l -> Sorted (y :: l).
 Proof.
@@ -110,7 +110,7 @@ Proof.
   sauto db: lelst inv: -.
 Qed.
 
-Lemma lem_merge_sorted {A} {dto : DecTotalOrder A} :
+Lemma lem_merge_sorted `{DecTotalOrder} :
   forall l1 l2, Sorted l1 -> Sorted l2 -> Sorted (merge (l1, l2)).
 Proof.
   enough (forall p, Sorted (fst p) -> Sorted (snd p) -> Sorted (merge p)) by sauto.
@@ -145,7 +145,7 @@ Proof.
   - hauto use: perm_skip, Permutation_cons_app.
 Qed.
 
-Lemma lem_msort_perm {A} {dto : DecTotalOrder A} :
+Lemma lem_msort_perm `{DecTotalOrder} :
   forall l, Permutation (msort l) l.
 Proof.
   intro l.
@@ -163,7 +163,7 @@ Proof.
     eapply perm_trans; eassumption.
 Qed.
 
-Lemma lem_msort_sorted {A} {dto : DecTotalOrder A} :
+Lemma lem_msort_sorted `{DecTotalOrder} :
   forall l, Sorted (msort l).
 Proof.
   intro l.

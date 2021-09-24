@@ -8,16 +8,16 @@ Import List.ListNotations.
 
 Require Import Program.
 
-Lemma lem_partition {A} {dto : DecTotalOrder A} :
-  forall (x : A) l1 l2, Sorted l1 -> Sorted l2 -> GeLst x l1 -> LeLst x l2 ->
-                        Sorted (l1 ++ x :: l2).
+Lemma lem_partition `{DecTotalOrder} :
+  forall x l1 l2, Sorted l1 -> Sorted l2 -> GeLst x l1 -> LeLst x l2 ->
+                  Sorted (l1 ++ x :: l2).
 Proof.
   induction l1.
   - inversion 4; sauto lq: on.
   - inversion 1; inversion 2; hauto use: lem_sorted_tail ctrs: Sorted.
 Qed.
 
-Program Fixpoint partition {A} {dto : DecTotalOrder A} (x : A) (l : list A)
+Program Fixpoint partition {A} `{DecTotalOrder A} (x : A) (l : list A)
   {measure (length l)} :
   { (l1, l2) : list A * list A |
     GeLst x l1 /\ LeLst x l2 /\ Permutation l (l1 ++ l2) } :=
@@ -34,7 +34,7 @@ Program Fixpoint partition {A} {dto : DecTotalOrder A} (x : A) (l : list A)
   end.
 Solve Obligations with sauto use: Permutation_middle.
 
-Program Fixpoint qsort {A} {dto : DecTotalOrder A} (l : list A) {measure (length l)}
+Program Fixpoint qsort {A} `{DecTotalOrder A} (l : list A) {measure (length l)}
   : {l' | Sorted l' /\ Permutation l l'} :=
   match l with
   | [] => []

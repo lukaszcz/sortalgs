@@ -7,7 +7,7 @@ Import ListNotations.
 
 Require Import Recdef.
 
-Fixpoint select {A} {dto: DecTotalOrder A} (x : A) (l : list A) : A * list A :=
+Fixpoint select {A} `{DecTotalOrder A} (x : A) (l : list A) : A * list A :=
   match l with
   | h :: t =>
     if leb x h then
@@ -20,26 +20,26 @@ Fixpoint select {A} {dto: DecTotalOrder A} (x : A) (l : list A) : A * list A :=
     (x, [])
   end.
 
-Lemma lem_select_length {A} {dto : DecTotalOrder A} :
-  forall (l l' : list A) x y, select x l = (y, l') -> length l' = length l.
+Lemma lem_select_length `{DecTotalOrder} :
+  forall l l' x y, select x l = (y, l') -> length l' = length l.
 Proof.
   induction l; hauto.
 Qed.
 
-Lemma lem_select_perm {A} {dto : DecTotalOrder A} :
-  forall (l l' : list A) x y, select x l = (y, l') -> Permutation (x :: l) (y :: l').
+Lemma lem_select_perm `{DecTotalOrder} :
+  forall l l' x y, select x l = (y, l') -> Permutation (x :: l) (y :: l').
 Proof.
   induction l; hauto q: on inv: Permutation ctrs: Permutation.
 Qed.
 
-Lemma lem_select_leb {A} {dto : DecTotalOrder A} :
-  forall (l l' : list A) x y, select x l = (y, l') -> leb y x.
+Lemma lem_select_leb `{DecTotalOrder} :
+  forall l l' x y, select x l = (y, l') -> leb y x.
 Proof.
   induction l; [ sauto | sauto use: lem_neg_leb ].
 Qed.
 
-Lemma lem_select_lelst {A} {dto : DecTotalOrder A} :
-  forall (l l' : list A) x y, select x l = (y, l') -> LeLst y l'.
+Lemma lem_select_lelst `{DecTotalOrder} :
+  forall l l' x y, select x l = (y, l') -> LeLst y l'.
 Proof.
   induction l; sauto use: lem_select_leb, lem_neg_leb.
 Qed.
@@ -61,8 +61,8 @@ Defined.
 
 Arguments ssort {_ _}.
 
-Lemma lem_ssort_perm {A} {dto : DecTotalOrder A} :
-  forall l : list A, Permutation (ssort l) l.
+Lemma lem_ssort_perm `{DecTotalOrder} :
+  forall l, Permutation (ssort l) l.
 Proof.
   intro l.
   functional induction (ssort l).
@@ -70,8 +70,8 @@ Proof.
   - sauto.
 Qed.
 
-Lemma lem_ssort_sorted {A} {dto : DecTotalOrder A} :
-  forall l : list A, Sorted (ssort l).
+Lemma lem_ssort_sorted `{DecTotalOrder} :
+  forall l, Sorted (ssort l).
 Proof.
   intro l.
   functional induction (ssort l).
